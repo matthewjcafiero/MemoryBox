@@ -1,0 +1,2 @@
+- use chat gpt to scan entries and ask new journaling questions based on previous entries (how would security work)
+--search/categorize by suspected related
