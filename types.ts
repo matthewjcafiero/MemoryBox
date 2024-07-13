@@ -3,13 +3,18 @@ type DeletedAt = Date | null;
 
 export type NewDataEntry = {
   message: string,
-  dateObject: DateObject
+  dateObject: DateObject,
+  tags: string[]
 }
 
 export type DataEntry = NewDataEntry & {
   id: string,
   createdAt: CreatedAt,
   deletedAt: DeletedAt
+}
+
+export type DataEntryWithTagObjects = DataEntry & {
+  tags: TagObject[]
 }
 
 export type DataEntryEditRequest = NewDataEntry & {

@@ -4,6 +4,22 @@ import { NewTagObject, TagObject } from "../../../types";
 
 let pathToFile = 'src/data/tags.json';
 
+export function getTagById(id:string): TagObject | undefined {
+  try{
+    let existingTags:TagObject[] = [];
+    if (fs.existsSync(pathToFile)) {
+      existingTags = JSON.parse(fs.readFileSync(pathToFile).toString());
+    }
+    for(let tag of existingTags){
+      if (tag.id === id){
+        return tag;
+      }
+    }
+  } catch (err) {
+    console.log('Error accessing tags from file:', err);
+  }
+}
+
 export function getAllTags(): TagObject[] | undefined {
   try{
     let existingTags:TagObject[] = [];

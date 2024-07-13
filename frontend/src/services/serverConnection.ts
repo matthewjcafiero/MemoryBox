@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { DataEntry, DataEntryEditRequest, NewDataEntry, NewTagObject, TagObject } from '../../../types';
+import { DataEntry, DataEntryEditRequest, DataEntryWithTagObjects, NewDataEntry, NewTagObject, TagObject } from '../../../types';
 
 const API_BASE_URL = 'http://localhost:3001';
 
@@ -8,7 +8,7 @@ const api = axios.create({
   baseURL: API_BASE_URL,
 });
 
-export async function testServerConnection(): Promise<DataEntry> {
+export async function testServerConnection(): Promise<DataEntryWithTagObjects> {
   try {
     const response = await api.get(`/entry/7b021bdd-85a5-4732-a058-83c40fabf6d5`);
     console.log("Server connection worked:", response);
@@ -34,7 +34,7 @@ export async function postNewEntry(payload:NewDataEntry): Promise<void> {
   }
 };
 
-export async function getAllEntries(): Promise<DataEntry[]> {
+export async function getAllEntries(): Promise<DataEntryWithTagObjects[]> {
   try {
     const response = await api.get(`/entry/all`);
     console.log("Get all entries here:", response.data);

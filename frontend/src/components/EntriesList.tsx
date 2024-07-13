@@ -1,7 +1,7 @@
 import React from "react";
 import { useQuery } from "react-query";
 import { getAllEntries } from "../services/serverConnection";
-import { DataEntry } from "../../../types";
+import { DataEntry, DataEntryWithTagObjects } from "../../../types";
 import DateLabel from "./DateLabel";
 import Entry from "./Entry";
 
@@ -18,7 +18,7 @@ const EntiresList: React.FC<EntriesListProps> = (props:EntriesListProps) => {
     <div>
       <h1>Memories</h1>
       <ul>
-        {data.map((entry: DataEntry) => (
+        {data.map((entry: DataEntryWithTagObjects) => (
           <Entry entry={entry} key={entry.id} />
         ))}
       </ul>

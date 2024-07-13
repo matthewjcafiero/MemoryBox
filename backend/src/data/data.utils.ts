@@ -1,10 +1,11 @@
 import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import { DataEntry, NewDataEntry } from '../../../types';
+import { DataEntry, DataEntryWithTagObjects, NewDataEntry, } from '../../../types';
+import { getTagById } from './tags.utils';
 
 let pathToFile = 'src/data/data.json';
 
-export function getDataById(id:string): DataEntry | undefined {
+export function getDataById(id:string): DataEntryWithTagObjects | undefined {
     try{
         let existingData:any= {};
         if (fs.existsSync(pathToFile)) {
@@ -19,7 +20,7 @@ export function getDataById(id:string): DataEntry | undefined {
     }
 }
 
-export function getAllData(): DataEntry[] | undefined {
+export function getAllData(): DataEntryWithTagObjects[] | undefined {
     try{
         let existingData:any= {};
         if (fs.existsSync(pathToFile)) {
@@ -29,6 +30,11 @@ export function getAllData(): DataEntry[] | undefined {
         for(let key of keys){
             if (existingData[key].deletedAt){
                 delete existingData[key];
+            } else if (existingData[key].tags.length){
+                //TODO: this is inefficient
+                existingData[key].tags = existingData[key].tags.map((tagId:string) => {
+                    return getTagById(tagId);
+                });
             }
         }
         return existingData;
@@ -47,7 +53,7 @@ export function saveData(data:NewDataEntry): DataEntry | undefined {
             existingData = JSON.parse(fs.readFileSync(pathToFile).toString());
         }
         let id = uuidv4();
-        existingData[id] = {id: id, ...data, createdAt: new Date(), deletedAt: null};
+        existingData[id] = {id: id, ...data, createdAt: new Date(), deletedAt: null, tags: data.tags};
 
         // Write the updated array back to the file
         fs.writeFileSync(pathToFile, JSON.stringify(existingData, null, 2) + '\n');

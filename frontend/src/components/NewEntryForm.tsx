@@ -4,6 +4,7 @@ import { getAllTags, postNewEntry, postNewTag } from "../services/serverConnecti
 import { DataEntry, DateObject, NewDataEntry, NewTagObject, TagObject } from "../../../types";
 import OptionalDatePicker from "./OptionalDatePicker";
 import TagInput from "./TagInput";
+import { isNewTagObject, isStrictlyNewTagObject, isTagObject } from "../utils/helpers";
 
 type newEntryFormProps = {};
 
@@ -73,26 +74,31 @@ const NewEntryForm: React.FC<newEntryFormProps> = (props:newEntryFormProps) => {
   //Submit handler for the form
   const handleSubmit = (e:any) => {
     e.preventDefault();
+    //TODO: need to comment this logic out correctly
 
     //We need to mutate against all the NewTagObjects in selectedTags, and create a tag object for each via api
-    //TODO: can we batch these so they don't trigger reloads every time
-    let tagsToCreate:NewTagObject[] = selectedTags.filter((selectedTag) =>{
-      return 'text' in selectedTag && !('id' in selectedTag) && !('createdAt' in selectedTag) && !('updatedAt' in selectedTag);
-    })
+    //TODO: can we batch these so they don't trigger reloads every time?
+    let tagsToCreate:NewTagObject[] = selectedTags.filter(isStrictlyNewTagObject);
     let createdTags:(TagObject|undefined)[] = tagsToCreate.map((tagToCreate) => { 
       tagsMutation.mutate(tagToCreate); 
       return tagsMutation.data;
     });
-    
+
+    //TODO: can we manpulate this to be cleaner/use less filters??
+    let removedUndefined:TagObject[] = createdTags.filter(isTagObject);
     //So this works!  Created tags wil have the newly created tags
-    //TODO: After we create the tags, we need to assign them with those new ids to the new entries
+    let tagsThatAreAlreadyTagObjects:TagObject[] = selectedTags.filter(isTagObject);
+    let processedTags:TagObject[] =removedUndefined.concat(tagsThatAreAlreadyTagObjects);
+    console.log("processedTags", processedTags);
+    let tagIdsOnly:string[] = processedTags.map((processedTags:TagObject) => { 
+      return processedTags.id;
+    });
+    console.log("tagIdsOnly", tagIdsOnly)
 
-    let inputConvertedToNewEntry : NewDataEntry = { message: inputValue, dateObject: dateObject }
+    let inputConvertedToNewEntry : NewDataEntry = { message: inputValue, dateObject: dateObject, tags: tagIdsOnly}
+    console.log("inputConvertedToNewEntry", inputConvertedToNewEntry)
     // Call mutate to trigger the mutation function defined above
-  entriesMutation.mutate(inputConvertedToNewEntry);
-
-    
-
+    entriesMutation.mutate(inputConvertedToNewEntry);
 
     //TODO: tags should only be mutated if new tags were created
     clearForm();

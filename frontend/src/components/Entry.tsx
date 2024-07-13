@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { DataEntry, DataEntryEditRequest, DateObject } from "../../../types";
+import { DataEntry, DataEntryEditRequest, DataEntryWithTagObjects, DateObject, TagObject } from "../../../types";
 import DateLabel from "./DateLabel";
 import { archiveEntry, editEntry } from "../services/serverConnection";
 import { useMutation, useQueryClient } from "react-query";
 import OptionalDatePicker from "./OptionalDatePicker";
 
 type EntryProps = {
-  entry: DataEntry,
+  entry: DataEntryWithTagObjects,
   key: string
 }
 
@@ -17,7 +17,6 @@ const Entry: React.FC<EntryProps> = ({entry, ...otherProps}) => {
   const [inEditingMode, setEditingMode] = useState(false);
   const [textInputValue, setTextInputValue] = useState(entry.message);
   const [dateObjectInputValue, setDateObjectInputValue] = useState<DateObject>({...entry.dateObject});
-
 
   const deleteEntryMutation = useMutation<any, unknown, any>(
     archiveEntry,
@@ -60,7 +59,8 @@ const Entry: React.FC<EntryProps> = ({entry, ...otherProps}) => {
     let editedEntryRequest:DataEntryEditRequest = {
       id: entry.id,
       message: textInputValue,
-      dateObject: dateObjectInputValue
+      dateObject: dateObjectInputValue,
+      tags:[]
     }
 
     saveEditsMutation.mutate(editedEntryRequest);
@@ -71,6 +71,10 @@ const Entry: React.FC<EntryProps> = ({entry, ...otherProps}) => {
     console.log(`Clicked delete button for entry with id of "${entry.id}"`);
     deleteEntryMutation.mutate(entry.id);
   }
+
+  entry.tags.map((tag:TagObject) => {
+    console.log(tag.text)
+  })
 
   if(inEditingMode){
     return (
@@ -103,6 +107,9 @@ const Entry: React.FC<EntryProps> = ({entry, ...otherProps}) => {
         {entry.message}
         <button onClick={handleEditButtonClick}>Edit</button>
         <button onClick={handleDeleteButtonClick}>Delete</button>
+        {entry.tags.map((tag:TagObject) => (
+            <div>{tag.text}</div>
+        ))}
     </div>
   )
 }
