@@ -46,13 +46,20 @@ const NewEntryForm: React.FC<newEntryFormProps> = (props:newEntryFormProps) => {
     }
   );
 
-  const tagsMutation = useMutation<void, unknown, NewTagObject>(
+  const tagsMutation = useMutation<TagObject, unknown, NewTagObject>(
     postNewTag,
     {
-      onSuccess: () => {
+      onSuccess: (data: any) => {
         // Invalidating and refetching data after mutation succeeds (for the key of tags)
         queryClient.invalidateQueries('tags');
+        console.log("Success on tagsMutation: ", data);
       },
+      onError: (error: any) => {
+        console.log("Error on tagsMutation: ", error);
+      }, 
+      onSettled: (settled: any) => {
+        console.log("Settled on tagsMutation: ", settled);
+      }
     }
   )
 
@@ -72,16 +79,17 @@ const NewEntryForm: React.FC<newEntryFormProps> = (props:newEntryFormProps) => {
     let tagsToCreate:NewTagObject[] = selectedTags.filter((selectedTag) =>{
       return 'text' in selectedTag && !('id' in selectedTag) && !('createdAt' in selectedTag) && !('updatedAt' in selectedTag);
     })
-    tagsToCreate.forEach((tagToCreate) => { tagsMutation.mutate(tagToCreate); });
-
-
-
-    //After we create the tags, we need to assign them with those new ids to the new entries
-    //TODO: add the id return as part of the apis
+    let createdTags:(TagObject|undefined)[] = tagsToCreate.map((tagToCreate) => { 
+      tagsMutation.mutate(tagToCreate); 
+      return tagsMutation.data;
+    });
+    
+    //So this works!  Created tags wil have the newly created tags
+    //TODO: After we create the tags, we need to assign them with those new ids to the new entries
 
     let inputConvertedToNewEntry : NewDataEntry = { message: inputValue, dateObject: dateObject }
     // Call mutate to trigger the mutation function defined above
-    entriesMutation.mutate(inputConvertedToNewEntry);
+  entriesMutation.mutate(inputConvertedToNewEntry);
 
     
 

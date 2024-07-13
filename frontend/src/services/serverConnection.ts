@@ -78,14 +78,15 @@ export async function getAllTags(): Promise<TagObject[]> {
   }
 }
 
-export async function postNewTag(payload:NewTagObject): Promise<void> {
+export async function postNewTag(payload:NewTagObject): Promise<TagObject> {
   try {
     console.log("Attempted post new tag payload: ", payload);
 
     const response = await api.post(`/newTag`, payload);
     
     // Handle the response if needed
-    console.log('Response from server:', response.data);
+    console.log('New tag response from server:', response.data);
+    return response.data;
   } catch (error) {
     // Handle errors
     console.error('Error sending data to server:', error);
