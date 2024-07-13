@@ -47,22 +47,7 @@ const NewEntryForm: React.FC<newEntryFormProps> = (props:newEntryFormProps) => {
     }
   );
 
-  const tagsMutation = useMutation<TagObject, unknown, NewTagObject>(
-    postNewTag,
-    {
-      onSuccess: (data: any) => {
-        // Invalidating and refetching data after mutation succeeds (for the key of tags)
-        queryClient.invalidateQueries('tags');
-        console.log("Success on tagsMutation: ", data);
-      },
-      onError: (error: any) => {
-        console.log("Error on tagsMutation: ", error);
-      }, 
-      onSettled: (settled: any) => {
-        console.log("Settled on tagsMutation: ", settled);
-      }
-    }
-  )
+  const tagsMutation = useMutation<TagObject, unknown, NewTagObject>(postNewTag)
 
   /** HANDLERS */
 
@@ -72,22 +57,36 @@ const NewEntryForm: React.FC<newEntryFormProps> = (props:newEntryFormProps) => {
   };
 
   //Submit handler for the form
-  const handleSubmit = (e:any) => {
+  const handleSubmit =  async (e:any) => {
     e.preventDefault();
     //TODO: need to comment this logic out correctly
 
     //We need to mutate against all the NewTagObjects in selectedTags, and create a tag object for each via api
     //TODO: can we batch these so they don't trigger reloads every time?
+    console.log("selectedTags", selectedTags)
     let tagsToCreate:NewTagObject[] = selectedTags.filter(isStrictlyNewTagObject);
-    let createdTags:(TagObject|undefined)[] = tagsToCreate.map((tagToCreate) => { 
-      tagsMutation.mutate(tagToCreate); 
-      return tagsMutation.data;
+    console.log("tagsToCreate", tagsToCreate)
+
+
+
+
+    let createdTagPromises:Promise<(TagObject|undefined)>[] = tagsToCreate.map(async (tagToCreate) => { 
+      let response = await tagsMutation.mutateAsync(tagToCreate); 
+      queryClient.invalidateQueries('tags');
+      return response;
     });
+    let createdTags:(TagObject|undefined)[] = await Promise.all(createdTagPromises);
+
+    console.log("createdTags", createdTags);
+
+
 
     //TODO: can we manpulate this to be cleaner/use less filters??
     let removedUndefined:TagObject[] = createdTags.filter(isTagObject);
+    console.log("removedUndefined", removedUndefined)
     //So this works!  Created tags wil have the newly created tags
     let tagsThatAreAlreadyTagObjects:TagObject[] = selectedTags.filter(isTagObject);
+    console.log("tagsThatAreAlreadyTagObjects", tagsThatAreAlreadyTagObjects)
     let processedTags:TagObject[] =removedUndefined.concat(tagsThatAreAlreadyTagObjects);
     console.log("processedTags", processedTags);
     let tagIdsOnly:string[] = processedTags.map((processedTags:TagObject) => { 
